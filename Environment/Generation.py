@@ -28,16 +28,19 @@ class Generation(Node):
 				data_paths.append(GDString(path))
 		else:
 			distribution, average_fitness = self.calc_distribution(prev_birds)
+			#best_bird = self.get_best_bird(prev_birds)
+			#self.parent.python_print("Best Bird : " + str(best_bird.fitness))
 			for i in range(pop_size):
-				parents = self.calc_parents(prev_birds, distribution)
+				parents = self.calc_parents(prev_birds, distribution, 2)
 				weights_1 = np.load(str(parents[0].get_brain().get_brain_data()), allow_pickle=True)
 				weights_2 = np.load(str(parents[1].get_brain().get_brain_data()), allow_pickle=True)
 				new_weights = self.crossover(weights_1, weights_2)
+				#if i > pop_size / 4:
 				self.mutate(new_weights)
 				path = os.path.join(new_generation_dir, f"{i}.npy")
 				np.save(path, new_weights)
 				data_paths.append(GDString(path))
-			self.parent.python_print(average_fitness)
+			#self.parent.python_print(average_fitness)
 			
 		return data_paths
 		
@@ -50,7 +53,7 @@ class Generation(Node):
 	def mutate_weight(self, weights):
 		for weight in np.nditer(weights, op_flags=['readwrite']):
 			if random.random() < 0.1:
-				weight[...] = max(0, min(1, weight + (random.gauss(0,1) * 0.5)))
+				weight[...] = max(0, min(1, weight + ((random.random() - 0.5) * 0.5) ))
 				
 	def crossover(self, weights_1, weights_2):
 		fully_new_weights = []
@@ -69,8 +72,9 @@ class Generation(Node):
 	
 		return fully_new_weights
 		
-	def calc_parents(self, birds, distribution):
-		parents = random.choices(birds, distribution, k=2)
+	def calc_parents(self, birds, distribution, k):
+		parents = random.choices(birds, distribution, k=k)
+		#self.parent.python_print(str(parents[0].fitness) + " " + str(parents[1].fitness))
 		return parents
 	
 	def calc_distribution(self, birds):
@@ -86,6 +90,21 @@ class Generation(Node):
 		for bird in birds:
 			if bird.fitness > 0:
 				total_fitness += bird.fitness
+			else:
+				total_fitness += 0.001
 		return total_fitness, total_fitness/len(birds)
+		
+	def get_best_bird(self, birds):
+		best_bird = False
+		best_fitness = 0
+		for bird in birds:
+			if bird.fitness > best_fitness:
+				best_bird = bird
+				best_fitness = bird.fitness
+		
+		if not best_bird:
+			best_bird = random.choices(birds)[0]		
+		
+		return best_bird
 			
 			

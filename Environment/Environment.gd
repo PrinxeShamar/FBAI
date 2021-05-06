@@ -5,9 +5,10 @@ var Pipe := load("res://src/Pipe/Pipe.tscn")
 
 onready var generation_label = get_node("GenerationLabel")
 onready var population_label = get_node("PopulationLabel")
+onready var score_label = get_node("ScoreLabel")
 onready var Generation := get_node("Generation")
 
-const POP_SIZE := 100
+const POP_SIZE := 200
 
 var rng := RandomNumberGenerator.new()
 var time := 2.0
@@ -16,6 +17,7 @@ var pipes := []
 var birds := []
 var birds_alive = 0
 var generation = 0
+var score = 0
 
 var running := false
 
@@ -27,12 +29,18 @@ func add_pipe():
 	new_pipe.position = Vector2(650, rng.randi_range(200,600))
 	add_child(new_pipe)
 	pipes.append(new_pipe)
+	
+	score_label.text = "Score : " + str(score)
+	score += 1
 	return new_pipe
 
 func reset():
 	running = false
 	birds_alive = 0
-
+	
+	score = 0
+	score_label.text = "Score : " + str(score)
+	
 	for pipe in pipes:
 		if is_instance_valid(pipe):
 			pipe.queue_free()
